@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>VMS Energy · Hoyo 9 · Torneo CMP</title>
+  <!--
+  ╔══════════════════════════════════════════════════════╗
+  ║  LOGOS — coloca estos archivos en la misma carpeta  ║
+  ║  que este HTML para que aparezcan automáticamente:  ║
+  ║                                                      ║
+  ║   logo-vms.png    → Logo VMS Energy (fondo transp.) ║
+  ║   logo-geolis.png → Logo Geolis     (fondo transp.) ║
+  ║   logo-cmp.png    → Logo CMP        (fondo transp.) ║
+  ╚══════════════════════════════════════════════════════╝
+  -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:     #0B2138;
+      --navy-mid: #12354F;
+      --navy-lt:  #1A4060;
+      --teal:     #2DD4BF;
+      --teal-dk:  #1aad9a;
+      --amber:    #F4A93C;
+      --muted:    #9DB4C6;
+      --light:    #F2F7FA;
+      --white:    #ffffff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+    }
+
+    /* ── TOP BAR ──────────────────────────────────── */
+    .topbar {
+      background: rgba(0,0,0,.25);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .topbar-logos {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .topbar-sep {
+      width: 1px; height: 28px;
+      background: rgba(255,255,255,.18);
+    }
+    .topbar-badge {
+      background: rgba(244,169,60,.15);
+      border: 1px solid rgba(244,169,60,.4);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--amber);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* ── LOGOS ────────────────────────────────────── */
+    .logo-vms    { height: 26px; width: auto; object-fit: contain; }
+
+    /* Logos con fondo blanco → píldora blanca */
+    .logo-pill-wrap {
+      background: white;
+      border-radius: 8px;
+      padding: 4px 10px;
+      display: inline-flex;
+      align-items: center;
+      height: 36px;
+    }
+    .logo-geolis { height: 22px; width: auto; object-fit: contain; }
+    .logo-cmp    { height: 28px; width: auto; object-fit: contain; }
+
+    /* Placeholder shown when image file is missing */
+    .logo-placeholder {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 30px; padding: 0 10px;
+      background: rgba(255,255,255,.08);
+      border: 1px dashed rgba(255,255,255,.25);
+      border-radius: 6px;
+      font-size: 11px; font-weight: 600;
+      color: rgba(255,255,255,.45);
+      letter-spacing: .06em;
+      white-space: nowrap;
+    }
+
+    /* ── HERO COMPACT ─────────────────────────────── */
+    .hero {
+      position: relative;
+      padding: 36px 24px 40px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 120%, rgba(45,212,191,.10) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hole-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 60px; height: 60px;
+      background: var(--teal);
+      border-radius: 50%;
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--navy);
+      margin: 0 auto 18px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 0 8px rgba(45,212,191,.12), 0 0 0 16px rgba(45,212,191,.06);
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(26px, 6vw, 40px);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero h1 .teal { color: var(--teal); }
+    .hero-sub {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 400px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── FORM SECTION ─────────────────────────────── */
+    .form-section {
+      background: var(--light);
+      color: var(--navy);
+      padding: 32px 20px 56px;
+      border-radius: 28px 28px 0 0;
+    }
+    .form-section::before {
+      content: '';
+      display: block;
+      width: 40px; height: 4px;
+      background: #cbd8e0;
+      border-radius: 4px;
+      margin: 0 auto 28px;
+    }
+    .section-eyebrow {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--teal-dk); margin-bottom: 4px;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px, 5vw, 32px);
+      font-weight: 800; color: var(--navy);
+      line-height: 1.1; margin-bottom: 24px;
+    }
+
+    /* Counter */
+    .counter-bar {
+      display: flex; align-items: center; gap: 10px;
+      background: #e8f3fb; border: 1px solid #c5dced;
+      border-radius: 10px; padding: 10px 16px; margin-bottom: 24px;
+    }
+    .counter-bar svg { color: var(--teal-dk); flex-shrink: 0; }
+    .counter-bar span { font-size: 13px; font-weight: 500; color: #3a6680; }
+    .counter-num { font-size: 20px; font-weight: 700; color: var(--navy); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+    /* Fields */
+    .field { margin-bottom: 16px; }
+    label {
+      display: block; font-size: 11px; font-weight: 700;
+      letter-spacing: .07em; text-transform: uppercase;
+      color: #5a7e96; margin-bottom: 5px;
+    }
+    label .req { color: #e05a5a; }
+    input, select, textarea {
+      font-family: 'Inter', sans-serif;
+      font-size: 16px; color: var(--navy);
+      background: var(--white); border: 1.5px solid #d1dfe8;
+      border-radius: 12px; padding: 14px 16px; width: 100%;
+      outline: none; -webkit-appearance: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input::placeholder, textarea::placeholder { color: #b0c7d5; }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--teal-dk);
+      box-shadow: 0 0 0 3px rgba(45,212,191,.15);
+    }
+    input.error { border-color: #e05a5a; box-shadow: 0 0 0 3px rgba(224,90,90,.12); }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239DB4C6' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 42px;
+    }
+    textarea { resize: none; height: 88px; font-size: 15px; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* Chips */
+    .chips-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #5a7e96; margin-bottom: 8px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .chip { display: inline-flex; align-items: center; }
+    .chip input[type="checkbox"] { display: none; }
+    .chip-label {
+      font-size: 12px; font-weight: 500;
+      color: #3a6680; background: var(--white);
+      border: 1.5px solid #d1dfe8; border-radius: 100px;
+      padding: 7px 14px; cursor: pointer;
+      transition: all .15s; user-select: none;
+    }
+    .chip input:checked + .chip-label {
+      background: var(--navy); border-color: var(--navy); color: var(--white);
+    }
+
+    .divider { border: none; border-top: 1.5px solid #e2edf3; margin: 20px 0; }
+
+    /* Submit */
+    .btn-submit {
+      width: 100%; background: var(--navy); color: var(--white);
+      border: none; border-radius: 14px; padding: 18px;
+      font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700;
+      letter-spacing: .02em; cursor: pointer;
+      transition: background .2s, transform .15s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-submit:active { transform: scale(.98); background: var(--navy-lt); }
+
+    .privacy-note { font-size: 11px; color: #8fafc4; text-align: center; margin-top: 14px; line-height: 1.5; }
+
+    /* ── SUCCESS ──────────────────────────────────── */
+    .success-view { display: none; text-align: center; padding: 20px 0 10px; }
+    .success-icon {
+      width: 80px; height: 80px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dk));
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px; box-shadow: 0 0 0 10px rgba(45,212,191,.12);
+    }
+    .success-view h3 { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--navy); margin-bottom: 8px; }
+    .success-view p { font-size: 14px; color: #4a6a82; line-height: 1.6; margin-bottom: 24px; }
+    .btn-nuevo {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--navy); color: var(--white); border: none;
+      border-radius: 12px; padding: 14px 28px;
+      font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── LOG ──────────────────────────────────────── */
+    .log-section { background: var(--navy-mid); padding: 24px 20px 40px; }
+    .log-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .log-title { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+    .log-count { font-size: 12px; color: var(--teal); font-weight: 600; }
+    .log-list { display: flex; flex-direction: column; gap: 8px; }
+    .log-item {
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px; padding: 10px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .log-item-avatar {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dk));
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--navy); flex-shrink: 0;
+    }
+    .log-item-info { flex: 1; min-width: 0; }
+    .log-item-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .log-item-meta { font-size: 11px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .log-item-time { font-size: 10px; color: #5a7e96; white-space: nowrap; margin-left: auto; padding-left: 6px; }
+    .log-empty { text-align: center; padding: 24px; font-size: 13px; color: #3a5a72; }
+
+    /* Export button */
+    .btn-export {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 16px;
+      background: rgba(29,185,84,.1);
+      border: 1.5px solid rgba(29,185,84,.35);
+      border-radius: 12px; padding: 14px;
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+      color: #4cde8a; cursor: pointer; letter-spacing: .03em;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-export:active { opacity: .7; }
+    .btn-export .xlsx-icon { font-size: 16px; }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logos">
+    <!-- VMS Energy -->
+    <img class="logo-vms"
+         src="VMS Energy logo Blanco2.png"
+         alt="VMS Energy"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+    <span class="logo-placeholder" style="display:none">VMS ENERGY</span>
+
+    <div class="topbar-sep"></div>
+
+    <!-- Geolis (fondo blanco → píldora) -->
+    <div class="logo-pill-wrap">
+      <img class="logo-geolis"
+           src="geolis.png"
+           alt="Geolis"
+           onerror="this.parentElement.style.display='none'; this.parentElement.nextElementSibling.style.display='inline-flex';" />
+    </div>
+    <span class="logo-placeholder" style="display:none">GEOLIS</span>
+
+    <div class="topbar-sep"></div>
+
+    <!-- CMP (fondo blanco → píldora) -->
+    <div class="logo-pill-wrap">
+      <img class="logo-cmp"
+           src="cmp.png"
+           alt="Congreso Mexicano del Petróleo"
+           onerror="this.parentElement.style.display='none'; this.parentElement.nextElementSibling.style.display='inline-flex';" />
+    </div>
+    <span class="logo-placeholder" style="display:none">CMP 2026</span>
+  </div>
+
+  <span class="topbar-badge">⛳ Hoyo 9</span>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <!-- CMP logo grande en el hero -->
+  <div style="margin-bottom:20px; position:relative; z-index:1;">
+    <div style="display:inline-flex; background:white; border-radius:12px; padding:8px 18px;" id="cmpHeroWrap">
+      <img src="cmp.png"
+           alt="Congreso Mexicano del Petróleo"
+           style="height:60px; width:auto; object-fit:contain;"
+           onerror="document.getElementById('cmpHeroWrap').style.display='none'; document.getElementById('cmpHeroFallback').style.display='block';" />
+    </div>
+    <span id="cmpHeroFallback" style="display:none; font-family:'Playfair Display',serif; font-size:13px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--amber);">
+      CONGRESO MEXICANO DEL PETRÓLEO
+    </span>
+  </div>
+
+  <div class="hole-badge">9</div>
+  <h1>Torneo <span class="teal">de Golf</span><br/>CMP 2026</h1>
+  <p class="hero-sub">Deja tus datos y te llevamos información sobre cómo resolvemos los retos de tu operación.</p>
+</div>
+
+<!-- FORM SECTION -->
+<div class="form-section">
+
+  <p class="section-eyebrow">Captura de contacto</p>
+  <h2 class="section-title">¿Con quién tenemos el gusto?</h2>
+
+  <div class="counter-bar" id="counterBar">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>Contactos registrados hoy</span>
+    <span class="counter-num" id="counterNum">0</span>
+  </div>
+
+  <!-- FORM -->
+  <form id="regForm" novalidate>
+
+    <div class="row-2">
+      <div class="field">
+        <label>Nombre <span class="req">*</span></label>
+        <input type="text" id="f-nombre" name="nombre" placeholder="Nombre" required autocomplete="off" />
+      </div>
+      <div class="field">
+        <label>Apellido <span class="req">*</span></label>
+        <input type="text" id="f-apellido" name="apellido" placeholder="Apellido" required autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Empresa <span class="req">*</span></label>
+      <input type="text" id="f-empresa" name="empresa" placeholder="Nombre de la empresa" required autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <label>Cargo</label>
+      <input type="text" id="f-cargo" name="cargo" placeholder="Tu puesto" autocomplete="off" />
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <label>Email <span class="req">*</span></label>
+        <input type="email" id="f-email" name="email" placeholder="correo@empresa.com" required autocomplete="off" inputmode="email" />
+      </div>
+      <div class="field">
+        <label>Teléfono</label>
+        <input type="tel" id="f-telefono" name="telefono" placeholder="+52 55 0000 0000" autocomplete="off" inputmode="tel" />
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <p class="chips-label">¿Qué le interesa explorar?</p>
+    <div class="chips" id="chipsContainer"></div>
+
+    <div class="field">
+      <label>Nota del equipo (opcional)</label>
+      <textarea id="f-nota" name="nota" placeholder="Ej: interesado en mantenimiento de plataforma, tiene licitación en Q3, llamar la próxima semana…"></textarea>
+    </div>
+
+    <button type="submit" class="btn-submit">
+      Guardar contacto
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </button>
+    <p class="privacy-note">Los datos se usan exclusivamente para seguimiento comercial de VMS Energy · Geolis.</p>
+  </form>
+
+  <!-- SUCCESS -->
+  <div class="success-view" id="successView">
+    <div class="success-icon">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h3>¡Contacto guardado!</h3>
+    <p id="successName">El registro quedó en la lista.<br/>¡A seguir en el campo!</p>
+    <button class="btn-nuevo" onclick="resetForm()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo registro
+    </button>
+  </div>
+
+</div>
+
+<!-- LOG -->
+<div class="log-section">
+  <div class="log-header">
+    <span class="log-title">Contactos del día</span>
+    <span class="log-count" id="logCount">0 registros</span>
+  </div>
+  <div class="log-list" id="logList">
+    <div class="log-empty">Aún no hay registros. ¡Empieza a capturar!</div>
+  </div>
+
+  <button class="btn-export" id="btnExport" onclick="exportExcel()" style="display:none">
+    <span class="xlsx-icon">📊</span>
+    Descargar Excel (.xlsx)
+  </button>
+</div>
+
+<script>
+  const STORE_KEY = 'vms_golf_cmp_leads';
+  const CHIPS_DATA = [
+    { val: 'mantenimiento',   label: '⚙️ Mantenimiento' },
+    { val: 'automatizacion',  label: '🖥 Automatización' },
+    { val: 'infraestructura', label: '⚡ Infraestructura eléctrica' },
+    { val: 'offshore',        label: '🛢 Offshore / plataformas' },
+    { val: 'sumergibles',     label: '📡 Sumergibles / cable' },
+  ];
+
+  // ── Build chips ────────────────────────────────────────
+  const chipsContainer = document.getElementById('chipsContainer');
+  CHIPS_DATA.forEach(c => {
+    const label = document.createElement('label');
+    label.className = 'chip';
+    label.innerHTML = `<input type="checkbox" name="interes" value="${c.val}"><span class="chip-label">${c.label}</span>`;
+    label.addEventListener('click', e => {
+      e.preventDefault();
+      const cb = label.querySelector('input');
+      cb.checked = !cb.checked;
+    });
+    chipsContainer.appendChild(label);
+  });
+
+  // ── Storage helpers ────────────────────────────────────
+  function getLeads() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { return []; }
+  }
+  function saveLeads(arr) { localStorage.setItem(STORE_KEY, JSON.stringify(arr)); }
+
+  // ── Render log ─────────────────────────────────────────
+  function renderLog() {
+    const leads = getLeads();
+    const list  = document.getElementById('logList');
+    const count = document.getElementById('logCount');
+    const cNum  = document.getElementById('counterNum');
+    const btn   = document.getElementById('btnExport');
+
+    cNum.textContent  = leads.length;
+    count.textContent = leads.length === 1 ? '1 registro' : `${leads.length} registros`;
+    btn.style.display = leads.length ? 'flex' : 'none';
+
+    if (!leads.length) {
+      list.innerHTML = '<div class="log-empty">Aún no hay registros. ¡Empieza a capturar!</div>';
+      return;
+    }
+
+    list.innerHTML = leads.slice().reverse().map(l => {
+      const initials = ((l.nombre||'?')[0] + (l.apellido||'?')[0]).toUpperCase();
+      const time = l.ts ? new Date(l.ts).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) : '';
+      const meta = [l.empresa, l.cargo].filter(Boolean).join(' · ') || l.email || '';
+      const inter = (l.intereses||[]).join(', ');
+      return `
+        <div class="log-item">
+          <div class="log-item-avatar">${initials}</div>
+          <div class="log-item-info">
+            <div class="log-item-name">${l.nombre} ${l.apellido}</div>
+            <div class="log-item-meta">${meta}${inter ? ' · '+inter : ''}</div>
+          </div>
+          <span class="log-item-time">${time}</span>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Form submit ────────────────────────────────────────
+  document.getElementById('regForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let valid = true;
+
+    this.querySelectorAll('[required]').forEach(el => {
+      el.classList.remove('error');
+      if (!el.value.trim()) { el.classList.add('error'); valid = false; }
+    });
+    if (!valid) {
+      this.querySelector('.error').scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+
+    const data = new FormData(this);
+    const intereses = [...this.querySelectorAll('input[name="interes"]:checked')].map(i => i.value);
+
+    const lead = {
+      nombre:    data.get('nombre').trim(),
+      apellido:  data.get('apellido').trim(),
+      empresa:   data.get('empresa').trim(),
+      cargo:     data.get('cargo').trim(),
+      email:     data.get('email').trim(),
+      telefono:  data.get('telefono').trim(),
+      intereses,
+      nota:      data.get('nota').trim(),
+      ts:        new Date().toISOString(),
+    };
+
+    const leads = getLeads();
+    leads.push(lead);
+    saveLeads(leads);
+    renderLog();
+
+    document.getElementById('successName').innerHTML =
+      `<strong>${lead.nombre} ${lead.apellido}</strong> quedó en la lista.<br/>¡A seguir en el campo!`;
+    this.style.display = 'none';
+    document.getElementById('successView').style.display = 'block';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+
+  // ── Reset ──────────────────────────────────────────────
+  function resetForm() {
+    const form = document.getElementById('regForm');
+    form.reset();
+    form.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+    form.style.display = 'block';
+    document.getElementById('successView').style.display = 'none';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  // ── Export Excel (.xlsx) ───────────────────────────────
+  function exportExcel() {
+    const leads = getLeads();
+    if (!leads.length) return;
+
+    const headers = [
+      'Nombre', 'Apellido', 'Empresa', 'Cargo',
+      'Email', 'Teléfono', 'Intereses', 'Nota del equipo', 'Fecha y hora'
+    ];
+
+    const rows = leads.map(l => [
+      l.nombre || '',
+      l.apellido || '',
+      l.empresa || '',
+      l.cargo || '',
+      l.email || '',
+      l.telefono || '',
+      (l.intereses || []).join(', '),
+      l.nota || '',
+      l.ts ? new Date(l.ts).toLocaleString('es-MX') : ''
+    ]);
+
+    // Build worksheet
+    const wsData = [headers, ...rows];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Column widths
+    ws['!cols'] = [
+      {wch:14},{wch:16},{wch:24},{wch:20},
+      {wch:28},{wch:18},{wch:36},{wch:40},{wch:20}
+    ];
+
+    // Style header row bold (basic)
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const cell = ws[XLSX.utils.encode_cell({r:0, c:C})];
+      if (cell) {
+        cell.s = { font: { bold: true }, fill: { fgColor: { rgb: '0B2138' } } };
+      }
+    }
+
+    // Build workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Contactos CMP');
+
+    const fecha = new Date().toLocaleDateString('es-MX').replace(/\//g, '-');
+    XLSX.writeFile(wb, `VMS_Golf_CMP_${fecha}.xlsx`);
+  }
+
+  // ── Init ───────────────────────────────────────────────
+  renderLog();
+</script>
+</body>
+</html>
